@@ -1,0 +1,189 @@
+syntax = "proto3";
+
+package booking;
+
+// ==========================
+// Registration
+// ==========================
+
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message RegisterResponse {
+  enum Status {
+    SUCCESS = 0;
+    USER_ALREADY_EXISTS = 1;
+    INVALID_REQUEST = 2;
+    NOT_LEADER = 3;
+  }
+
+  Status status = 1;
+  string message = 2;
+  string leader_hint = 3;
+}
+
+// ==========================
+// Login / Logout
+// ==========================
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  enum Status {
+    SUCCESS = 0;
+    INVALID_CREDENTIALS = 1;
+    NOT_LEADER = 2;
+  }
+
+  Status status = 1;
+  string token = 2;
+  string leader_hint = 3;
+}
+
+message LogoutRequest {
+  string token = 1;
+}
+
+message LogoutResponse {
+  enum Status {
+    SUCCESS = 0;
+    INVALID_TOKEN = 1;
+    NOT_LEADER = 2;
+  }
+
+  Status status = 1;
+}
+
+// ==========================
+// Movie Availability
+// ==========================
+
+message GetAvailabilityRequest {
+  string token = 1;
+  string movie_id = 2;
+  string showtime = 3;
+}
+
+message Seat {
+  string seat_id = 1;
+  bool is_available = 2;
+}
+
+message GetAvailabilityResponse {
+  enum Status {
+    SUCCESS = 0;
+    UNAUTHORIZED = 1;
+    SHOWTIME_NOT_FOUND = 2;
+    NOT_LEADER = 3;
+  }
+
+  Status status = 1;
+  repeated Seat seats = 2;
+  string leader_hint = 3;
+}
+
+// ==========================
+// Booking
+// ==========================
+
+message BookSeatRequest {
+  string token = 1;
+  string movie_id = 2;
+  string showtime = 3;
+  repeated string seat_ids = 4;
+  string request_id = 5;
+}
+
+message BookSeatResponse {
+  enum Status {
+    SUCCESS = 0;
+    UNAUTHORIZED = 1;
+    SEAT_UNAVAILABLE = 2;
+    ALREADY_BOOKED = 3;
+    PAYMENT_FAILED = 4;
+    NOT_LEADER = 5;
+  }
+
+  Status status = 1;
+  string booking_id = 2;
+  string leader_hint = 3;
+}
+
+// ==========================
+// View Bookings
+// ==========================
+
+message GetBookingsRequest {
+  string token = 1;
+}
+
+message Booking {
+  string booking_id = 1;
+  string movie_id = 2;
+  string showtime = 3;
+  repeated string seat_ids = 4;
+}
+
+message GetBookingsResponse {
+  enum Status {
+    SUCCESS = 0;
+    UNAUTHORIZED = 1;
+    NOT_LEADER = 2;
+  }
+
+  Status status = 1;
+  repeated Booking bookings = 2;
+  string leader_hint = 3;
+}
+
+// ==========================
+// Chatbot
+// ==========================
+
+message ChatbotRequest {
+  string token = 1;
+  string payload = 2;
+  string context = 3;
+}
+
+message ChatbotResponse {
+  enum Status {
+    SUCCESS = 0;
+    UNAUTHORIZED = 1;
+    NOT_LEADER = 2;
+  }
+
+  Status status = 1;
+  string answer = 2;
+  string leader_hint = 3;
+}
+
+// ==========================
+// Service
+// ==========================
+
+service BookingService {
+
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+
+  rpc Login(LoginRequest) returns (LoginResponse);
+
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+
+  rpc GetAvailability(GetAvailabilityRequest)
+      returns (GetAvailabilityResponse);
+
+  rpc BookSeat(BookSeatRequest)
+      returns (BookSeatResponse);
+
+  rpc GetBookings(GetBookingsRequest)
+      returns (GetBookingsResponse);
+
+  rpc AskChatbot(ChatbotRequest)
+      returns (ChatbotResponse);
+}
